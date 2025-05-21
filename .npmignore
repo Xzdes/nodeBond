@@ -1,0 +1,8 @@
+
+examples/
+benchmark.js
+logo.txt
+logo.psd
+*.log
+node_modules/
+bin/

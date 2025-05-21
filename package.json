@@ -1,0 +1,23 @@
+{
+    "name": "nodebond",
+    "version": "1.0.0",
+    "description": "Lightweight Local IPC Bridge for Node.js",
+    "main": "index.js",
+    "scripts": {
+        "start": "node examples/appA.js",
+        "send": "node examples/appB.js"
+    },
+    "keywords": [
+        "ipc",
+        "bridge",
+        "nodejs",
+        "local",
+        "communication",
+        "cli"
+    ],
+    "author": "Guliaev",
+    "license": "MIT",
+    "bin": {
+        "nodebond": "bin/nodebond-cli.js"
+    }
+}
