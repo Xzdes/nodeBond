@@ -1,5 +1,23 @@
+# Ignore development files
 examples/
 benchmark.js
-*.log
+logo.png
+
+# Node-related junk
 node_modules/
-bin/
+npm-debug.log
+
+# Editor junk
+*.swp
+*.swo
+*.tmp
+.DS_Store
+
+# Testing artifacts
+*.test.js
+coverage/
+__tests__/
+
+# Optional: exclude documentation (uncomment if needed)
+# README.md
+# LICENSE
