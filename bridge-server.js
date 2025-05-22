@@ -3,6 +3,7 @@
 const net = require('net');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { encodeMessage, decodeMessage } = require('./protocol');
 
 /**
@@ -21,9 +22,12 @@ function getSocketPath(name) {
 /**
  * Создаёт серверный IPC-мост, позволяющий принимать подключения и обмениваться сообщениями.
  * @param {string} name - Имя моста (уникальное на машине)
+ * @param {object} [options] - Дополнительные параметры
+ * @param {boolean} [options.secure] - Установить права 0o600 на Unix
+ * @param {boolean} [options.temp] - Временный мост: удаляется при закрытии
  * @returns {object} API управления мостом: on, once, send, close
  */
-function createBridge(name) {
+function createBridge(name, options = {}) {
   const socketPath = getSocketPath(name);
   const clients = new Set();
   const listeners = {
@@ -71,7 +75,6 @@ function createBridge(name) {
     });
   });
 
-  // Попытка запустить сервер
   tryListen(socketPath);
 
   /**
@@ -80,6 +83,13 @@ function createBridge(name) {
   function tryListen(path) {
     server.listen(path, () => {
       console.log(`[nodeBond] Мост '${name}' запущен на ${path}`);
+      if (options.secure && process.platform !== 'win32') {
+        try {
+          fs.chmodSync(path, 0o600); // Только текущий пользователь
+        } catch (err) {
+          console.warn('[nodeBond] Не удалось установить безопасные права:', err.message);
+        }
+      }
     });
 
     server.on('error', (err) => {

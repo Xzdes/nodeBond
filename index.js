@@ -2,6 +2,9 @@
 
 const { createBridge } = require('./bridge-server');
 const { connectToBridge } = require('./bridge-client');
+const os = require('os');
+const path = require('path');
+const crypto = require('crypto');
 
 const DEBUG = process.env.NODEBOND_DEBUG === '1' || process.env.NODEBOND_DEBUG === 'true';
 
@@ -9,6 +12,10 @@ function log(...args) {
   if (DEBUG) {
     console.log('[nodeBond DEBUG]', ...args);
   }
+}
+
+function generateBridgeName(prefix = 'auto') {
+  return `${prefix}-${os.hostname()}-${process.pid}-${Date.now()}`;
 }
 
 module.exports = {
@@ -22,6 +29,11 @@ module.exports = {
   dual(localName, remoteName) {
     const server = createBridge(localName);
     let client = null;
+    const stats = {
+      sent: 0,
+      received: 0,
+      startTime: Date.now(),
+    };
 
     const listeners = {
       data: [],
@@ -30,33 +42,48 @@ module.exports = {
       disconnect: [],
     };
 
+    const middlewares = [];
+
     function emit(event, payload) {
       if (listeners[event]) {
         listeners[event].forEach((handler) => handler(payload));
       }
     }
 
-    // Обработка входящих сообщений с сервера
+    function applyMiddlewares(msg, finalCallback) {
+      let index = 0;
+
+      function next(modified) {
+        if (index >= middlewares.length) {
+          return finalCallback(modified);
+        }
+        const mw = middlewares[index++];
+        mw(modified, next);
+      }
+
+      next(msg);
+    }
+
     server.on('data', (msg) => {
+      stats.received++;
       log('Получено на сервере:', msg);
-      emit('data', msg);
+      applyMiddlewares(msg, (finalMsg) => emit('data', finalMsg));
     });
 
     server.on('connect', (sock) => emit('connect', { type: 'server', socket: sock }));
     server.on('disconnect', (sock) => emit('disconnect', { type: 'server', socket: sock }));
 
-    // Подключение к удалённому мосту
     function tryConnect(retry = true) {
       try {
         client = connectToBridge(remoteName);
 
         client.on('data', (msg) => {
+          stats.received++;
           log('Получено от клиента:', msg);
-          emit('data', msg);
+          applyMiddlewares(msg, (finalMsg) => emit('data', finalMsg));
         });
 
         client.on('connect', () => emit('connect', { type: 'client' }));
-
         client.on('disconnect', () => {
           emit('disconnect', { type: 'client' });
           if (retry) setTimeout(() => tryConnect(true), 1000);
@@ -77,18 +104,12 @@ module.exports = {
     tryConnect(true);
 
     return {
-      /**
-       * Подписка на событие.
-       */
       on(event, handler) {
         if (listeners[event]) {
           listeners[event].push(handler);
         }
       },
 
-      /**
-       * Одноразовая подписка на событие.
-       */
       once(event, handler) {
         const wrapper = (payload) => {
           handler(payload);
@@ -100,10 +121,8 @@ module.exports = {
         }
       },
 
-      /**
-       * Отправка сообщения через клиентскую часть.
-       */
       send(data, options = {}) {
+        stats.sent++;
         if (client) {
           log('Отправка сообщения:', data);
           return client.send(data, options);
@@ -112,19 +131,13 @@ module.exports = {
         }
       },
 
-      /**
-       * Отправка с указанием цели (в сообщение добавляется __target).
-       */
       sendTo(target, data, options = {}) {
-        if (typeof data === 'object') {
+        if (typeof data === 'object' && !Buffer.isBuffer(data)) {
           data.__target = target;
         }
         return this.send(data, options);
       },
 
-      /**
-       * Завершение соединений.
-       */
       close() {
         log('Закрытие сервера и клиента...');
         server.close();
@@ -132,6 +145,31 @@ module.exports = {
           client.close();
         }
       },
+
+      use(fn) {
+        if (typeof fn === 'function') {
+          middlewares.push(fn);
+        }
+      },
+
+      stats() {
+        const uptime = Date.now() - stats.startTime;
+        return {
+          messagesSent: stats.sent,
+          messagesReceived: stats.received,
+          memoryUsageMB: (process.memoryUsage().rss / 1024 / 1024).toFixed(2),
+          uptimeMs: uptime,
+        };
+      },
     };
+  },
+
+  /**
+   * dual.auto() — автоматическая генерация имён мостов
+   */
+  auto() {
+    const local = generateBridgeName('local');
+    const remote = generateBridgeName('remote');
+    return this.dual(local, remote);
   },
 };

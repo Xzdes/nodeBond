@@ -73,7 +73,8 @@ function connectToBridge(name) {
       }
 
       return new Promise((resolve, reject) => {
-        const payload = { ...data, __expectResponse: true };
+        const isBuffer = Buffer.isBuffer(data);
+        const payload = isBuffer ? data : { ...data, __expectResponse: true };
         socket.write(encodeMessage(payload));
 
         const timer = setTimeout(() => {
