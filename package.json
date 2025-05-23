@@ -1,10 +1,10 @@
 {
   "name": "nodebond",
-  "version": "3.2.0",
+  "version": "4.0.0",
   "description": "Локальная IPC-шина для связи между Node.js-приложениями на одной машине",
   "main": "index.js",
   "bin": {
-    "nodebond": "./bin/nodebond.js"
+    "nodebond": "./bin/nodebond-cli.js"
   },
   "scripts": {
     "start-hub": "node ./bin/nodebond.js start-hub",

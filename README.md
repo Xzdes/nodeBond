@@ -1,88 +1,130 @@
-<p align="center">
-  <img src="logo.png" alt="nodeBond Logo" width="180"/>
-</p>
+# ![nodeBond Logo](logo.png)
 
 # nodeBond
 
-[![NPM Version](https://img.shields.io/npm/v/nodebond.svg?style=flat)](https://www.npmjs.com/package/nodebond)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-nodeBond-blue?logo=github)](https://github.com/Xzdes/nodeBond)
-
-📖 Also available in [Русский язык](README.ru.md)
+nodeBond is a local microservice communication bus for Node.js. It lets you register services (apps) on the same machine, send messages, call functions, share global state, and coordinate them via a central hub — with almost zero dependencies.
 
 ---
 
-`nodeBond` is a lightweight inter-process communication (IPC) system designed for seamless local service orchestration in Node.js. It connects multiple independent services on a single machine with minimal setup, no external dependencies, and a robust messaging system.
+## 🔧 Features
 
-## 🚀 Features
+- 🔌 IPC via Unix/Windows sockets  
+- 📡 Call remote methods from other services  
+- 📦 Global key-value store (get/set/watch)  
+- 🔐 Token-based authentication (optional)  
+- 🛠 CLI for direct interaction  
+- 🧩 Fully modular and framework-free  
 
-- Minimalistic IPC bridge using Unix domain sockets / named pipes
-- Auto-registration of services
-- Service discovery and remote calls
-- CLI for diagnostics and interaction
-- Platform support: Windows, Linux, macOS
+---
 
-## 📦 Installation
+## 🚀 Installation
+
+Install from npm:
 
 ```bash
-git clone https://github.com/Xzdes/nodeBond.git
-cd nodeBond
-npm install
-npm link   # Register CLI globally
+npm install nodebond
 ```
 
+Or globally:
 
-## 🧵 Starting the System
+```bash
+npm install -g nodebond
+```
 
-Start the hub first:
+---
+
+## 🔐 Optional: secure your system with token
+
+```bash
+export NODEBOND_TOKEN=secret123       # Linux/macOS  
+$env:NODEBOND_TOKEN="secret123"       # PowerShell  
+```
+
+---
+
+## ⚡ Quick Start (3 terminals)
+
+### 1️⃣ Start the hub
 
 ```bash
 nodebond start-hub
 ```
 
-Then in separate terminals:
-
-```bash
-node example/db-service/index.js
-node example/printer-service/index.js
-node example/cashbox-service/index.js
-```
-
-## 💡 How It Works
-
-- Services register with the hub using `register()`
-- Hub builds a registry and distributes it to all
-- Services use `call()` to communicate
-
-### Example: `cashbox-service`
+### 2️⃣ Run a service (example/db-service)
 
 ```js
-const { register, call } = require("nodebond");
+// db-service/index.js
+const { register } = require("nodebond");
 
 register({
-  id: "cashbox",
+  id: "db",
   exports: {
-    ping: () => "pong"
+    ping: () => "pong",
+    getClientById: (id) => ({ id, name: "Ivan", bonus: 100 })
   },
-  onReady: async () => {
-    await call("db.getClientById", 42);
+  onReady() {
+    console.log("[db] Ready");
   }
 });
 ```
 
-## 🔧 CLI Usage
-
 ```bash
-nodebond call db.getClientById 42
-nodebond get printer.status
-nodebond set printer.status "ready"
+NODEBOND_TOKEN=secret123 node example/db-service/index.js
 ```
 
-## ❓ Troubleshooting
+### 3️⃣ Call it
 
-- Ensure `hub` is started
-- On Windows: `Get-ChildItem \\.\pipe\ | findstr nodebond`
-- On Linux/macOS: `ls /tmp/nodebond-*`
+```bash
+nodebond call db.ping
+```
 
-## 📄 License
+---
 
-MIT
+## 🛠 CLI Usage
+
+```bash
+nodebond start-hub
+nodebond call printer.print "Hello"
+nodebond set printer.status ""ready""
+nodebond get printer.status
+nodebond watch printer.status
+```
+
+---
+
+## 🧪 Test Automation
+
+We provide a full test script:
+
+```bash
+test-nodebond-full.bat
+```
+
+It starts hub, services, performs calls, sets and watches variables.
+
+---
+
+## 📦 Project Structure
+
+```
+nodeBond/
+├── core/
+├── ipc/
+├── runtime/
+├── bin/
+├── example/
+├── plugins/
+├── logo.png
+├── README.md
+```
+
+---
+
+## 📎 Links
+
+- NPM: https://www.npmjs.com/package/nodebond  
+- GitHub: https://github.com/Xzdes/nodeBond
+
+---
+
+## 🛡 Version: 4.0.0

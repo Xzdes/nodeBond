@@ -1,98 +1,80 @@
-# Contributing to nodeBond
+# 🤝 Contributing to nodeBond
 
-🙏 Thank you for your interest in contributing to **nodeBond**!
+Thank you for considering contributing to **nodeBond** — a local microservice bridge for Node.js.
 
-This guide will help you understand how to get started, contribute code, report bugs, or suggest improvements.
+We welcome issues, pull requests, feedback, and ideas!
 
 ---
 
-## 📦 Getting Started
+## 🧠 Before You Start
 
-To set up the project locally:
+- Ensure you're using **Node.js >= 18**
+- This project uses **no framework** – just vanilla JS
+- Code should be **clear, full-length (no short var names)**, and readable
+
+---
+
+## 🚀 Getting Started
 
 ```bash
 git clone https://github.com/Xzdes/nodeBond.git
 cd nodeBond
 npm install
-npm link
 ```
 
-Then you can run the example services:
+To run the hub manually:
 
 ```bash
 nodebond start-hub
-node example/db-service/index.js
-node example/printer-service/index.js
-node example/cashbox-service/index.js
+```
+
+To test a service:
+
+```bash
+NODEBOND_TOKEN=your-token node example/db-service/index.js
+```
+
+To test:
+
+```bash
+test-nodebond-full.bat
 ```
 
 ---
 
-## 📁 Project Structure
+## 🧪 Testing Your Changes
 
-See [`README.md`](README.md) for full project layout and architecture.
+Please test with:
 
----
-
-## 💻 Code Style
-
-- Use **2 spaces** for indentation
-- Prefer `camelCase` for variables and function names
-- Use clear, descriptive names
-- Comment your code when necessary
-- Keep logic modular and maintainable
+- ✅ `test-nodebond-full.bat`
+- ✅ manual usage of `call`, `set`, `watch`
+- ✅ multiple services running at once
 
 ---
 
-## ✅ Contributing Workflow
+## ✍ Code Style
 
-1. Fork this repository
-2. Create a new branch:  
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes
-4. Test your code locally
-5. Commit with a clear message:  
-   ```bash
-   git commit -m "feat: short description of change"
-   ```
-6. Push to your fork:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-7. Open a **Pull Request (PR)** with a brief description of what you’ve done
+- Use full variable names (e.g. `requestId` not `rid`)
+- Use `const`/`let`, avoid `var`
+- Use async/await — no nested callbacks
+- Handle errors (try/catch for async methods)
+- Keep comments if logic is non-obvious
 
 ---
 
-## 🐞 Bug Reports
+## 📥 Submitting Changes
 
-Please include:
-
-- A clear description of the issue
-- Steps to reproduce
-- Expected vs. actual behavior
-- Your OS, Node.js version, and any logs
+1. Fork this repo
+2. Create a new branch
+3. Submit your PR against `main`
+4. Use descriptive commit messages
 
 ---
 
-## 💡 Feature Suggestions
+## 💬 Need Help?
 
-Open an issue and explain:
-
-- What problem the feature solves
-- How you would use it
-- How it fits into the rest of nodeBond
+Open an issue or join our community on GitHub Discussions (soon!)
 
 ---
 
-## 🤝 Code of Conduct
-
-We aim to be respectful, inclusive, and collaborative. Be kind and constructive in all interactions.
-
----
-
-## 📬 Need Help?
-
-Open an issue or reach out on GitHub:  
-🔗 https://github.com/Xzdes/nodeBond/issues
+Thanks for helping grow **nodeBond** 🧩!

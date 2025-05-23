@@ -1,58 +1,44 @@
+// runtime/register.js
 const { connectToBridge } = require("../ipc/client");
 const { createBridge } = require("../ipc/server");
+const { encodeMessage } = require("../ipc/protocol");
 
-const internalState = {
-  services: {},
-  id: null,
-  exports: {},
-};
+const TOKEN = process.env.NODEBOND_TOKEN || null;
 
-/**
- * Регистрирует сервис в системе nodeBond
- * @param {object} config
- */
-async function register(config) {
-  if (!config || !config.id) {
-    throw new Error("[nodeBond] Не указан ID");
-  }
-
-  const id = config.id;
-  const exports = config.exports || {};
-  internalState.id = id;
-  internalState.exports = exports;
-
-  // Создаём локальный мост
+function register({ id, exports = {}, onReady }) {
   const server = createBridge(id);
+  const hub = connectToBridge("hub");
 
-  server.on("data", async (msg) => {
+  server.on("data", async (msg, clientSocket) => {
     if (msg.call && typeof exports[msg.call] === "function") {
-      const result = await exports[msg.call](...(msg.args || []));
-      server.send({ responseTo: msg.call, result });
+      try {
+        const result = await exports[msg.call](...(msg.args || []));
+        if (clientSocket?.writable && msg.__expectResponse) {
+          clientSocket.write(encodeMessage({
+            responseTo: msg.call,
+            result,
+            __requestId: msg.__requestId,
+          }));
+        }
+      } catch (err) {
+        if (clientSocket?.writable) {
+          clientSocket.write(encodeMessage({
+            error: err.message,
+            __requestId: msg.__requestId,
+          }));
+        }
+      }
     }
   });
 
-  // Подключаемся к hub
-  const hub = connectToBridge("hub");
-
-  // После подключения отправляем сообщение регистрации
   hub.on("connect", () => {
-    hub.send({
-      type: "register",
-      id,
-      api: Object.keys(exports),
-    });
+    hub.send({ type: "register", id, api: Object.keys(exports), token: TOKEN });
   });
 
-  // Ждём сообщение с реестром
   hub.on("data", (msg) => {
-    if (msg && msg.type === "registry") {
+    if (msg.type === "registry") {
       console.log(`[register.js:${id}] Получен реестр:`, msg.services);
-
-      internalState.services = msg.services || {};
-
-      if (typeof config.onReady === "function") {
-        config.onReady({ hub });
-      }
+      if (onReady) onReady({ hub });
     }
   });
 }

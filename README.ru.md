@@ -1,88 +1,126 @@
-<p align="center">
-  <img src="logo.png" alt="nodeBond Logo" width="180"/>
-</p>
+# ![nodeBond Логотип](logo.png)
 
 # nodeBond
 
-[![NPM Version](https://img.shields.io/npm/v/nodebond.svg?style=flat)](https://www.npmjs.com/package/nodebond)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-nodeBond-blue?logo=github)](https://github.com/Xzdes/nodeBond)
-
-📖 English version available here: [README.md](README.md)
+**nodeBond** — это локальная шина взаимодействия микросервисов на Node.js. Позволяет приложениям на одной машине связываться, вызывать методы, обмениваться переменными и работать через центральный узел — хаб.
 
 ---
 
-`nodeBond` — это лёгкая IPC-система для Node.js, позволяющая соединять несколько приложений на одной машине без внешних зависимостей. Службы могут взаимодействовать, вызывать функции друг друга и передавать данные.
+## 🔧 Возможности
 
-## 🚀 Возможности
+- 🔌 IPC через Unix/Windows сокеты  
+- 📡 Вызов методов между сервисами  
+- 📦 Глобальное key-value хранилище  
+- 🔐 Поддержка авторизации через токен  
+- 🛠 CLI для управления  
+- 🧩 Без фреймворков и лишних зависимостей  
 
-- IPC через Unix сокеты / именованные каналы
-- Автоматическая регистрация сервисов
-- Вызов функций между сервисами
-- CLI для управления и отладки
-- Поддержка Windows, Linux, macOS
+---
 
-## 📦 Установка
+## 🚀 Установка
 
 ```bash
-git clone https://github.com/Xzdes/nodeBond.git
-cd nodeBond
-npm install
-npm link   # Регистрация команды nodebond
+npm install nodebond
 ```
 
+Или глобально:
 
-## 🧵 Запуск
+```bash
+npm install -g nodebond
+```
 
-Сначала запустите `hub`:
+---
+
+## 🔐 Опционально: токен безопасности
+
+```bash
+export NODEBOND_TOKEN=secret123       # Linux/macOS  
+$env:NODEBOND_TOKEN="secret123"       # Windows PowerShell  
+```
+
+---
+
+## ⚡ Быстрый старт (3 терминала)
+
+### 1️⃣ Запуск хаба
 
 ```bash
 nodebond start-hub
 ```
 
-Затем в отдельных окнах:
-
-```bash
-node example/db-service/index.js
-node example/printer-service/index.js
-node example/cashbox-service/index.js
-```
-
-## 💡 Как работает
-
-- Сервисы регистрируются через `register()`
-- Хаб рассылает реестр всем
-- `call()` позволяет обращаться к методам других сервисов
-
-### Пример: `cashbox-service`
+### 2️⃣ Сервис (example/db-service)
 
 ```js
-const { register, call } = require("nodebond");
+// db-service/index.js
+const { register } = require("nodebond");
 
 register({
-  id: "cashbox",
+  id: "db",
   exports: {
-    ping: () => "pong"
+    ping: () => "pong",
+    getClientById: (id) => ({ id, name: "Иван", bonus: 100 })
   },
-  onReady: async () => {
-    await call("db.getClientById", 42);
+  onReady() {
+    console.log("[db] Готов");
   }
 });
 ```
 
-## 🔧 Использование CLI
-
 ```bash
-nodebond call db.getClientById 42
-nodebond get printer.status
-nodebond set printer.status "ready"
+NODEBOND_TOKEN=secret123 node example/db-service/index.js
 ```
 
-## ❓ Решение проблем
+### 3️⃣ Вызов метода
 
-- Убедитесь, что `hub` запущен
-- Windows: `Get-ChildItem \\.\pipe\ | findstr nodebond`
-- Linux/macOS: `ls /tmp/nodebond-*`
+```bash
+nodebond call db.ping
+```
 
-## 📄 Лицензия
+---
 
-MIT
+## 🛠 Команды CLI
+
+```bash
+nodebond start-hub
+nodebond call printer.print "Hello"
+nodebond set printer.status ""ready""
+nodebond get printer.status
+nodebond watch printer.status
+```
+
+---
+
+## 🧪 Тестирование
+
+```bash
+test-nodebond-full.bat
+```
+
+Запускает хаб, сервисы, делает вызовы и отслеживает переменные.
+
+---
+
+## 📦 Структура проекта
+
+```
+nodeBond/
+├── core/
+├── ipc/
+├── runtime/
+├── bin/
+├── example/
+├── plugins/
+├── logo.png
+├── README.md
+```
+
+---
+
+## 📎 Ссылки
+
+- NPM: https://www.npmjs.com/package/nodebond  
+- GitHub: https://github.com/Xzdes/nodeBond
+
+---
+
+## 🛡 Версия: 4.0.0
