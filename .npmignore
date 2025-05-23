@@ -1,7 +1,6 @@
 # Ignore development files
 examples/
 benchmark.js
-logo.png
 
 # Node-related junk
 node_modules/
