@@ -1,25 +1,36 @@
 {
   "name": "nodebond",
-  "version": "2.2.0",
-  "description": "Lightweight Local IPC Bridge for Node.js",
+  "version": "3.2.0",
+  "description": "Локальная IPC-шина для связи между Node.js-приложениями на одной машине",
   "main": "index.js",
+  "bin": {
+    "nodebond": "./bin/nodebond.js"
+  },
   "scripts": {
-    "start": "node examples/appA.js",
-    "send": "node examples/appB.js",
-    "benchmark": "node benchmark.js",
-    "cli": "node bin/nodebond-cli.js"
+    "start-hub": "node ./bin/nodebond.js start-hub",
+    "test": "echo \"No tests yet\""
   },
   "keywords": [
     "ipc",
     "bridge",
-    "nodejs",
     "local",
-    "communication",
-    "cli"
+    "service-bus",
+    "nodejs",
+    "cli",
+    "microservices"
   ],
-  "author": "Guliaev",
+  "author": "Xzdes",
   "license": "MIT",
-  "bin": {
-    "nodebond": "bin/nodebond-cli.js"
-  }
+  "homepage": "https://github.com/Xzdes/nodeBond#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Xzdes/nodeBond.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Xzdes/nodeBond/issues"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "type": "commonjs"
 }
